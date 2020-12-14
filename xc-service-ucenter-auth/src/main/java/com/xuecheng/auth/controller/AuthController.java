@@ -5,22 +5,26 @@ import com.xuecheng.auth.service.AuthService;
 import com.xuecheng.framework.domain.ucenter.ext.AuthToken;
 import com.xuecheng.framework.domain.ucenter.request.LoginRequest;
 import com.xuecheng.framework.domain.ucenter.response.AuthCode;
+import com.xuecheng.framework.domain.ucenter.response.JwtResult;
 import com.xuecheng.framework.domain.ucenter.response.LoginResult;
 import com.xuecheng.framework.exception.ExceptionCast;
 import com.xuecheng.framework.model.response.CommonCode;
 import com.xuecheng.framework.model.response.ResponseResult;
 import com.xuecheng.framework.utils.CookieUtil;
+import com.xuecheng.framework.web.BaseController;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.Objects;
 
-public class AuthController implements AuthControllerApi {
+public class AuthController extends BaseController implements AuthControllerApi {
 
     @Value("${auth.clientId}")
     String clientId;
@@ -64,7 +68,30 @@ public class AuthController implements AuthControllerApi {
     }
 
     @Override
+    @PostMapping("/userlogout")
     public ResponseResult logout() {
-        return null;
+        String token = this.getTokenFormCookie();
+        authService.delToken(token);
+        this.clearCookie(token);
+        return new ResponseResult(CommonCode.SUCCESS);
+    }
+
+    private void clearCookie(String token) {
+        CookieUtil.addCookie(response,
+                cookieDomain, "/", "uid", token, 0, false);
+    }
+
+    @Override
+    @GetMapping("/userjwt")
+    public JwtResult userjwt() {
+        String token = this.getTokenFormCookie();
+        AuthToken authToken = authService.getUserToken(token);
+        return Objects.isNull(authToken) ? new JwtResult(CommonCode.FAIL, null) : new JwtResult(CommonCode.SUCCESS, authToken.getJwt_token());
+    }
+
+    private String getTokenFormCookie() {
+        Map<String, String> uid = CookieUtil.readCookie(request, "uid");
+        return uid.get("uid");
+
     }
 }

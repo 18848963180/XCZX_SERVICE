@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -44,7 +45,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 
     //读取密钥的配置
     @Bean("keyProp")
-    public KeyProperties keyProperties(){
+    public KeyProperties keyProperties() {
         return new KeyProperties();
     }
 
@@ -57,6 +58,7 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     public ClientDetailsService clientDetails() {
         return new JdbcClientDetailsService(dataSource);
     }
+
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.jdbc(this.dataSource).clients(this.clientDetails());
@@ -82,23 +84,46 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
 //        RedisTokenStore redisTokenStore = new RedisTokenStore(redisConnectionFactory);
 //        return redisTokenStore;
 //    }
+
+    //设置使用BCryptPasswordEncoder对密码进行加密 每次加密的结果均不相同
+   /* @Test
+    public void testPasswrodEncoder() {
+        String password = "111111";
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        for (int i = 0; i < 10; i++) {
+            //每个计算出的Hash值都不一样
+            String hashPass = passwordEncoder.encode(password);
+            System.out.println(hashPass);
+            //虽然每次计算的密码Hash值不一样但是校验是通过的
+            boolean f = passwordEncoder.matches(password, hashPass);
+            System.out.println(f);
+        }
+    } */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+
     @Bean
     @Autowired
     public TokenStore tokenStore(JwtAccessTokenConverter jwtAccessTokenConverter) {
         return new JwtTokenStore(jwtAccessTokenConverter);
     }
+
     @Bean
     public JwtAccessTokenConverter jwtAccessTokenConverter(CustomUserAuthenticationConverter customUserAuthenticationConverter) {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         KeyPair keyPair = new KeyStoreKeyFactory
                 (keyProperties.getKeyStore().getLocation(), keyProperties.getKeyStore().getSecret().toCharArray())
-                .getKeyPair(keyProperties.getKeyStore().getAlias(),keyProperties.getKeyStore().getPassword().toCharArray());
+                .getKeyPair(keyProperties.getKeyStore().getAlias(), keyProperties.getKeyStore().getPassword().toCharArray());
         converter.setKeyPair(keyPair);
         //配置自定义的CustomUserAuthenticationConverter
         DefaultAccessTokenConverter accessTokenConverter = (DefaultAccessTokenConverter) converter.getAccessTokenConverter();
         accessTokenConverter.setUserTokenConverter(customUserAuthenticationConverter);
         return converter;
     }
+
     //授权服务器端点配置
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
@@ -134,7 +159,6 @@ class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
                 .tokenKeyAccess("permitAll()")
                 .checkTokenAccess("isAuthenticated()");
     }
-
 
 
 }

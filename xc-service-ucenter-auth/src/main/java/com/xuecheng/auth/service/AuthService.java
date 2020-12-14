@@ -112,6 +112,15 @@ public class AuthService {
                 StringUtils.isEmpty((String) map.get("refresh_token")) ||
                 StringUtils.isEmpty((String) map.get("jti"))
         ) {
+            String error_description = (String) map.get("error_description");
+            if (StringUtils.isNotEmpty(error_description)) {
+                if (error_description.equals("坏的凭证")) {
+                    ExceptionCast.cast(AuthCode.AUTH_CREDENTIAL_ERROR);
+                } else if (error_description.indexOf("UserDetailsService returned null") >= 0) {
+                    ExceptionCast.cast(AuthCode.AUTH_ACCOUNT_NOTEXISTS);
+                }
+            }
+
             ExceptionCast.cast(AuthCode.AUTH_LOGIN_APPLYTOKEN_FAIL);
         }
 
@@ -124,5 +133,22 @@ public class AuthService {
 
     private String httpbasic(String clientId, String clientSecret) {
         return "Basic " + new String(Base64.getEncoder().encode((clientId + ":" + clientSecret).getBytes()));
+    }
+
+    public AuthToken getUserToken(String token) {
+        String userToken = "user_token:" + token;
+        String jwtJson = (String) redisTemplate.opsForValue().get(userToken);
+        if (StringUtils.isNotEmpty(jwtJson)) {
+            AuthToken authToken = JSON.parseObject(jwtJson, AuthToken.class);
+            return authToken;
+        }
+        return null;
+    }
+
+    //从redis中删除令牌
+    public boolean delToken(String access_token){
+        String name = "user_token:" + access_token;
+        redisTemplate.delete(name);
+        return true;
     }
 }
