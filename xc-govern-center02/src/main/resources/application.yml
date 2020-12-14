@@ -1,0 +1,16 @@
+server:
+  port: 50102
+spring:
+  application:
+    name: xc-govern-center
+eureka:
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://eureka01:50101/eureka/
+  server:
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 60000
+  instance:
+    hostname: eureka02
