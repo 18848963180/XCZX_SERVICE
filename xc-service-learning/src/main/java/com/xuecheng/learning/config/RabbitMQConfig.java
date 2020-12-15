@@ -1,4 +1,4 @@
-package com.xuecheng.order.config;
+package com.xuecheng.learning.config;
 
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,37 +18,32 @@ public class RabbitMQConfig {
 
     //添加选课路由key
     public static final String XC_LEARNING_ADDCHOOSECOURSE_KEY = "addchoosecourse";
-
     //完成添加选课路由key
     public static final String XC_LEARNING_FINISHADDCHOOSECOURSE_KEY = "finishaddchoosecourse";
 
     /**
      * 交换机配置
-     *
      * @return the exchange
      */
     @Bean(EX_LEARNING_ADDCHOOSECOURSE)
     public Exchange EX_DECLARE() {
         return ExchangeBuilder.directExchange(EX_LEARNING_ADDCHOOSECOURSE).durable(true).build();
     }
-
     //声明队列完成添加选课队列
     @Bean(XC_LEARNING_FINISHADDCHOOSECOURSE)
     public Queue QUEUE_DECLARE() {
-        Queue queue = new Queue(XC_LEARNING_FINISHADDCHOOSECOURSE, true, false, true);
+        Queue queue = new Queue(XC_LEARNING_FINISHADDCHOOSECOURSE,true,false,true);
         return queue;
     }
 
     //声明队列 添加选课队列
     @Bean(XC_LEARNING_ADDCHOOSECOURSE)
     public Queue QUEUE_DECLARE_2() {
-        Queue queue = new Queue(XC_LEARNING_ADDCHOOSECOURSE, true, false, true);
+        Queue queue = new Queue(XC_LEARNING_ADDCHOOSECOURSE,true,false,true);
         return queue;
     }
-
     /**
      * 绑定完成添加选课队列到交换机 .
-     *
      * @param queue    the queue
      * @param exchange the exchange
      * @return the binding
@@ -57,10 +52,8 @@ public class RabbitMQConfig {
     public Binding binding_finishaddchoose_processtask(@Qualifier("xc_learning_finishaddchoosecourse") Queue queue, @Qualifier(EX_LEARNING_ADDCHOOSECOURSE) Exchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(XC_LEARNING_FINISHADDCHOOSECOURSE_KEY).noargs();
     }
-
     /**
      * 绑定添加选课队列到交换机 .
-     *
      * @param queue    the queue
      * @param exchange the exchange
      * @return the binding
