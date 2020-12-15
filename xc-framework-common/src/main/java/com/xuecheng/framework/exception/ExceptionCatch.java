@@ -17,10 +17,10 @@ public class ExceptionCatch {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionCatch.class);
 
     //使用EXCEPTION存放异常的类型和异常的信息,ImmutableMap的特点是 一旦创建就不可改变,且是线程安全的
-    private static ImmutableMap<Class<? extends Throwable>, ResultCode> EXCEPTIONS;
+    public static ImmutableMap<Class<? extends Throwable>, ResultCode> EXCEPTIONS;
 
     //使用builder来构建一个异常类型和异常信息
-    private static ImmutableMap.Builder<Class<? extends Throwable>, ResultCode> builder = ImmutableMap.builder();
+    public static ImmutableMap.Builder<Class<? extends Throwable>, ResultCode> builder = ImmutableMap.builder();
 
     static {
         builder.put(HttpMessageNotReadableException.class, CommonCode.INVALID_PARAM);

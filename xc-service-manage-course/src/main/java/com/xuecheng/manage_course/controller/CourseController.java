@@ -12,6 +12,7 @@ import com.xuecheng.manage_course.service.CourseBaseService;
 import com.xuecheng.manage_course.service.CoursePicService;
 import com.xuecheng.manage_course.service.TeachplanService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -54,6 +55,7 @@ public class CourseController implements CouserControllerApi {
 
     @Override
     @GetMapping("/coursebase/list/{page}/{size}")
+    @PreAuthorize("hasAuthorize('course_find_list')")//当前登录用户拥有course_find_list的权限码才能访问当前链接,此注解需要在配置类中配置生效
     public QueryResponseResult findCourseList(@PathVariable("page") int page,
                                               @PathVariable("size") int size,
                                               CourseListRequest courseListRequest) {
